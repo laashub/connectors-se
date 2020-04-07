@@ -29,7 +29,7 @@ import org.talend.sdk.component.junit5.WithComponents;
 
 @Disabled("Azure eventhubs credentials is not ready on ci")
 @WithComponents("org.talend.components.azure.eventhubs")
-class UiActionServiceTest extends AzureEventHubsTestBase {
+class AzureEventhubsServiceTest extends AzureEventHubsTestBase {
 
     private static final String INVALID_ENDPOINT = "sb://not-exit-ns.servicebus.windows.net";
 
@@ -45,7 +45,7 @@ class UiActionServiceTest extends AzureEventHubsTestBase {
     private static final String BAD_SASKEY = "zn+KhzbKgnJ7GZJ+jwuFKtHitV7bmHDBjq9YF5g0348=";
 
     @Service
-    private UiActionService service;
+    private AzureEventhubsService service;
 
     @Service
     private Messages i18n;

@@ -23,7 +23,7 @@ import javax.json.bind.Jsonb;
 import javax.json.spi.JsonProvider;
 
 import org.talend.components.azure.eventhubs.service.Messages;
-import org.talend.components.azure.eventhubs.service.UiActionService;
+import org.talend.components.azure.eventhubs.service.AzureEventhubsService;
 import org.talend.components.azure.eventhubs.source.AzureEventHubsSource;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
@@ -44,7 +44,7 @@ public class AzureEventHubsStreamInputMapper implements Serializable {
 
     private final AzureEventHubsStreamInputConfiguration configuration;
 
-    private final UiActionService service;
+    private final AzureEventhubsService service;
 
     private final RecordBuilderFactory recordBuilderFactory;
 
@@ -59,7 +59,7 @@ public class AzureEventHubsStreamInputMapper implements Serializable {
     private final Messages messages;
 
     public AzureEventHubsStreamInputMapper(@Option("configuration") final AzureEventHubsStreamInputConfiguration configuration,
-            final UiActionService service, RecordBuilderFactory recordBuilderFactory, JsonBuilderFactory jsonBuilderFactory,
+            final AzureEventhubsService service, RecordBuilderFactory recordBuilderFactory, JsonBuilderFactory jsonBuilderFactory,
             JsonProvider jsonProvider, JsonReaderFactory readerFactory, Jsonb jsonb, Messages messages) {
         this.configuration = configuration;
         this.service = service;

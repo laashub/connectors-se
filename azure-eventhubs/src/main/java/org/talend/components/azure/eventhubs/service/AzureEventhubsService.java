@@ -53,7 +53,7 @@ import com.microsoft.azure.storage.CloudStorageAccount;
 import lombok.Getter;
 
 @Service
-public class UiActionService {
+public class AzureEventhubsService {
 
     private static Long DEFAULT_TIMEOUT = 10L;
 

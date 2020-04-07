@@ -101,6 +101,26 @@ class AzureEventHubsAvroTest extends AzureEventHubsRWTestBase {
     }
 
     @Test
+    @DisplayName("Read Avro format data from sequence")
+    void testWrongConsumerGroup() {
+
+        final String containerName = "eh-avro-read-sequence";
+        int maxRecords = PARTITION_COUNT * RECORD_PER_PARTITION;
+        AzureEventHubsStreamInputConfiguration inputConfiguration = createInputConfiguration(true);
+        inputConfiguration.setDataset(createDataSet());
+
+        inputConfiguration.setConsumerGroupName(CONSUME_GROUP + "-" + System.currentTimeMillis());
+        inputConfiguration.setContainerName(containerName);
+        inputConfiguration.setAutoOffsetReset(AzureEventHubsStreamInputConfiguration.OffsetResetStrategy.SEQUENCE);
+        // -1L is same with EARLIEST
+        inputConfiguration.setSequenceNum(-1L);
+
+        final Mapper mapper = getComponentsHandler().createMapper(AzureEventHubsStreamInputMapper.class, inputConfiguration);
+        List<Record> records = getComponentsHandler().collectAsList(Record.class, mapper, maxRecords);
+        assertEquals(maxRecords, records.size());
+    }
+
+    @Test
     @Disabled("need wait message write to eventhub")
     void testReadTimeout() {
         // here expect 500

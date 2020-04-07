@@ -17,7 +17,7 @@ import java.time.OffsetDateTime;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.talend.components.azure.eventhubs.datastore.AzureEventHubsDataStore;
-import org.talend.components.azure.eventhubs.service.UiActionService;
+import org.talend.components.azure.eventhubs.service.AzureEventhubsService;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit5.Injected;
@@ -60,7 +60,7 @@ public class AzureEventHubsTestBase implements Serializable {
     protected static final String SAS_TOKEN;
 
     @Service
-    UiActionService service;
+    AzureEventhubsService service;
 
     static {
         final MavenDecrypter decrypter = new MavenDecrypter();

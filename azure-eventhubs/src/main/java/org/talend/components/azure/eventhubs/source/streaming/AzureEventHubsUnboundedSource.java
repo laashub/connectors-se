@@ -41,7 +41,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.talend.components.azure.eventhubs.runtime.adapter.ContentAdapterFactory;
 import org.talend.components.azure.eventhubs.runtime.adapter.EventDataContentAdapter;
 import org.talend.components.azure.eventhubs.service.Messages;
-import org.talend.components.azure.eventhubs.service.UiActionService;
+import org.talend.components.azure.eventhubs.service.AzureEventhubsService;
 import org.talend.components.azure.eventhubs.source.AzureEventHubsSource;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
@@ -71,7 +71,7 @@ import reactor.core.publisher.Flux;
 @Documentation("Source to consume eventhubs messages")
 public class AzureEventHubsUnboundedSource implements Serializable, AzureEventHubsSource {
 
-    private final UiActionService service;
+    private final AzureEventhubsService service;
 
     private static Queue<EventData> receivedEvents = new LinkedList<EventData>();
 
@@ -97,7 +97,7 @@ public class AzureEventHubsUnboundedSource implements Serializable, AzureEventHu
     public static final String ENDPOINT_PATTERN = "sb://(.*)";
 
     public AzureEventHubsUnboundedSource(@Option("configuration") final AzureEventHubsStreamInputConfiguration configuration,
-            final UiActionService service, RecordBuilderFactory recordBuilderFactory, JsonBuilderFactory jsonBuilderFactory,
+            final AzureEventhubsService service, RecordBuilderFactory recordBuilderFactory, JsonBuilderFactory jsonBuilderFactory,
             JsonProvider jsonProvider, JsonReaderFactory readerFactory, Jsonb jsonb, Messages messages) {
         this.configuration = configuration;
         this.service = service;
