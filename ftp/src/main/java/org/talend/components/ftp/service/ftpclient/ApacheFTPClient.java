@@ -210,4 +210,13 @@ public class ApacheFTPClient extends GenericFTPClient {
         }
     }
 
+    @Override
+    public void removeFile(String filePath) {
+        try {
+            ftpClient.deleteFile(filePath);
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
 }

@@ -68,4 +68,6 @@ public abstract class GenericFTPClient implements AutoCloseable {
     public final void close() {
         disconnect();
     }
+
+    public abstract void removeFile(String filePath);
 }

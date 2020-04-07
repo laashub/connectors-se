@@ -28,8 +28,11 @@ import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -63,6 +66,10 @@ public class FTPService implements Serializable {
         }
     }
 
+    public String generateFilePath(String dirPath, String filename) {
+        return dirPath + (dirPath.endsWith(PATH_SEPARATOR) ? "" : PATH_SEPARATOR) + filename;
+    }
+
     public GenericFTPClient getClient(FTPDataStore dataStore) {
         GenericFTPClient ftpClient = ftpClientFactory.getClient(dataStore);
         ftpClient.connect(dataStore.getHost(), dataStore.getPort());
@@ -73,6 +80,32 @@ public class FTPService implements Serializable {
         }
         ftpClient.afterAuth(dataStore);
         return ftpClient;
+    }
+
+    /**
+     * Checks if connection allows writting in a directory
+     * 
+     * @param dataset Dataset containing the path of the directory to test
+     * @return true if user can write, false otherwise
+     */
+    public boolean canWrite(FTPDataSet dataset) {
+        try (GenericFTPClient ftpClient = getClient(dataset.getDatastore())) {
+            ftpClient.enableDebug(log);
+            String filename = UUID.randomUUID().toString();
+            String filePath = generateFilePath(dataset.getPath(), filename);
+            OutputStream out = ftpClient.storeFileStream(filePath);
+            if (out != null) {
+                out.write("test".getBytes(StandardCharsets.UTF_8));
+                out.flush();
+                out.close();
+                ftpClient.removeFile(filePath);
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return false;
+        }
     }
 
     /**

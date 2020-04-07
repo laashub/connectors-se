@@ -15,6 +15,9 @@ package org.talend.components.ftp.service;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockftpserver.fake.filesystem.DirectoryEntry;
+import org.mockftpserver.fake.filesystem.Permissions;
+import org.mockftpserver.fake.filesystem.UnixFakeFileSystem;
 import org.talend.components.ftp.dataset.FTPDataSet;
 import org.talend.components.ftp.datastore.FTPDataStore;
 import org.talend.components.ftp.jupiter.FtpFile;
@@ -69,6 +72,23 @@ public class FTPServiceTest {
         dataset.getDatastore().setPassword("WRONG");
         Assertions.assertEquals(HealthCheckStatus.Status.KO, beanUnderTest.validateDataStore(dataset.getDatastore()).getStatus(),
                 "Status should be KO.");
+    }
+
+    @Test
+    public void testWritable(UnixFakeFileSystem fs) {
+        DirectoryEntry writableDirectory = new DirectoryEntry("/writable");
+        writableDirectory.setPermissions(Permissions.ALL);
+        fs.add(writableDirectory);
+
+        dataset.setPath("/writable");
+        Assertions.assertTrue(beanUnderTest.canWrite(dataset), "Directory should be writable.");
+
+        DirectoryEntry nonWritableDirectory = new DirectoryEntry("/nonwritable");
+        nonWritableDirectory.setPermissions(Permissions.NONE);
+        fs.add(nonWritableDirectory);
+
+        dataset.setPath("/nonwritable");
+        Assertions.assertFalse(beanUnderTest.canWrite(dataset), "Directory should not be writable.");
     }
 
 }

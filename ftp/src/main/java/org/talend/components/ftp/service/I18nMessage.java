@@ -36,4 +36,6 @@ public interface I18nMessage {
     String infoCreateRemoteFile(String path);
 
     String errorTooManyRetries(int nbMaxRetriesPut);
+
+    String errorCannotWrite();
 }

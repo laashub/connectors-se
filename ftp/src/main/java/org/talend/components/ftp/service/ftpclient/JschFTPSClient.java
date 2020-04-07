@@ -227,4 +227,13 @@ public class JschFTPSClient extends GenericFTPClient {
     public String getReplyCode() {
         return "???";
     }
+
+    @Override
+    public void removeFile(String filePath) {
+        try {
+            channel.rm(filePath);
+        } catch (SftpException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
 }
