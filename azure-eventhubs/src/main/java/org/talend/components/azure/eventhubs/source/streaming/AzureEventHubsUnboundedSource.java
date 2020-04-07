@@ -51,6 +51,7 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import com.azure.core.amqp.AmqpRetryMode;
 import com.azure.core.amqp.AmqpRetryOptions;
+import com.azure.core.amqp.exception.AmqpException;
 import com.azure.messaging.eventhubs.EventData;
 import com.azure.messaging.eventhubs.EventProcessorClient;
 import com.azure.messaging.eventhubs.EventProcessorClientBuilder;
@@ -94,6 +95,9 @@ public class AzureEventHubsUnboundedSource implements Serializable, AzureEventHu
 
     private BlobCheckpointStore blobCheckpointStore;
 
+    // error message in partition processor
+    private transient String errorMessage;
+
     public static final String ENDPOINT_PATTERN = "sb://(.*)";
 
     public AzureEventHubsUnboundedSource(@Option("configuration") final AzureEventHubsStreamInputConfiguration configuration,
@@ -113,7 +117,6 @@ public class AzureEventHubsUnboundedSource implements Serializable, AzureEventHu
     @PostConstruct
     public void init() {
         try {
-            final String ownerId = "talend";
             // get formatted eventhubs connecting string
             String endpoint = null;
             if (configuration.getDataset().getConnection().isSpecifyEndpoint()) {
@@ -173,7 +176,8 @@ public class AzureEventHubsUnboundedSource implements Serializable, AzureEventHu
                     .retry(retryOptions) //
                     .processPartitionInitialization(initializationContext -> onInitialize(initializationContext)) //
                     .processPartitionClose(closeContext -> onClose(closeContext)) //
-                    .processEvent(eventContext -> onEvent(eventContext)).processError(errorContext -> onError(errorContext)) //
+                    .processEvent(eventContext -> onEvent(eventContext)) //
+                    .processError(errorContext -> onError(errorContext)) //
                     .initialPartitionEventPosition(eventPosition) //
                     .checkpointStore(blobCheckpointStore); //
 
@@ -189,6 +193,9 @@ public class AzureEventHubsUnboundedSource implements Serializable, AzureEventHu
 
     @Producer
     public Record next() {
+        if (errorMessage != null) {
+            throw new IllegalStateException(errorMessage);
+        }
         EventData eventData = receivedEvents.poll();
         Record record = null;
         if (eventData != null) {
@@ -274,8 +281,6 @@ public class AzureEventHubsUnboundedSource implements Serializable, AzureEventHu
      * @param errorContext Context information for the partition in which this error occurred.
      */
     void onError(ErrorContext errorContext) {
-        log.error("Error occurred in partition processor for partition {}, {}",
-                errorContext.getPartitionContext().getPartitionId(), errorContext.getThrowable());
         // make sure checkpoint update when not reach the batch
         if (lastEventDataMap.containsKey(errorContext.getPartitionContext().getPartitionId())) {
             EventData eventData = lastEventDataMap.get(errorContext.getPartitionContext().getPartitionId()).poll();
@@ -300,8 +305,12 @@ public class AzureEventHubsUnboundedSource implements Serializable, AzureEventHu
                 }
             }
         }
-        log.error("Error occurred processing partition '{}'. Exception: {}", errorContext.getPartitionContext().getPartitionId(),
-                errorContext.getThrowable());
+        Throwable exception = errorContext.getThrowable();
+        if (exception != null) {
+            errorMessage = exception.getMessage();
+            log.error("Error occurred in partition processor for partition {}, {}",
+                    errorContext.getPartitionContext().getPartitionId(), exception.getMessage());
+        }
     }
 
     /**
@@ -354,8 +363,8 @@ public class AzureEventHubsUnboundedSource implements Serializable, AzureEventHu
         final Integer count = eventsProcessed.compute(eventContext.getPartitionContext().getPartitionId(),
                 (key, value) -> value == null ? 1 : value + 1);
 
-        log.debug("Processing event from partition " + eventContext.getPartitionContext().getPartitionId()
-                + " with sequence number " + eventContext.getEventData().getSequenceNumber());
+        log.debug("Processing event from partition {}  with sequence number {}",
+                eventContext.getPartitionContext().getPartitionId(), eventContext.getEventData().getSequenceNumber());
         EventData data = eventContext.getEventData();
         if (!eventProcessorClient.isRunning()) {
             // ignore the received event data, this would not handled by component
@@ -375,7 +384,5 @@ public class AzureEventHubsUnboundedSource implements Serializable, AzureEventHu
                 throw new IllegalArgumentException(e);
             }
         }
-        log.info("Event {} received for partition: {}. # of events processed: {}", data.getSequenceNumber(),
-                eventContext.getPartitionContext().getPartitionId(), count);
     }
 }

@@ -13,6 +13,7 @@
 package org.talend.components.azure.eventhubs.source.streaming;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -72,7 +73,6 @@ class AzureEventHubsAvroTest extends AzureEventHubsRWTestBase {
 
         final Mapper mapper = getComponentsHandler().createMapper(AzureEventHubsStreamInputMapper.class, inputConfiguration);
         assertTrue(mapper.isStream());
-        getComponentsHandler().start();
         List<Record> records = getComponentsHandler().collectAsList(Record.class, mapper, maxRecords);
         assertEquals(maxRecords, records.size());
 
@@ -95,16 +95,36 @@ class AzureEventHubsAvroTest extends AzureEventHubsRWTestBase {
         inputConfiguration.setSequenceNum(-1L);
 
         final Mapper mapper = getComponentsHandler().createMapper(AzureEventHubsStreamInputMapper.class, inputConfiguration);
-        getComponentsHandler().start();
         List<Record> records = getComponentsHandler().collectAsList(Record.class, mapper, maxRecords);
         assertEquals(maxRecords, records.size());
     }
 
     @Test
-    @DisplayName("Read Avro format data from sequence")
+    @DisplayName("Read Avro format data from incorrect sequence")
+    void testIncorrectSequenceNumber() {
+
+        final String containerName = "eh-avro-incorrect-sequence";
+        int maxRecords = PARTITION_COUNT * RECORD_PER_PARTITION;
+        AzureEventHubsStreamInputConfiguration inputConfiguration = createInputConfiguration(true);
+        inputConfiguration.setDataset(createDataSet());
+
+        inputConfiguration.setConsumerGroupName(CONSUME_GROUP);
+        inputConfiguration.setContainerName(containerName);
+        inputConfiguration.setAutoOffsetReset(AzureEventHubsStreamInputConfiguration.OffsetResetStrategy.SEQUENCE);
+        // Long.MAX_VALUE must exceed latest sequence number
+        inputConfiguration.setSequenceNum(Long.MAX_VALUE);
+
+        final Mapper mapper = getComponentsHandler().createMapper(AzureEventHubsStreamInputMapper.class, inputConfiguration);
+        assertThrows(IllegalStateException.class, () -> {
+            getComponentsHandler().collectAsList(Record.class, mapper, maxRecords);
+        });
+    }
+
+    @Test
+    @DisplayName("Read Avro by wrong group")
     void testWrongConsumerGroup() {
 
-        final String containerName = "eh-avro-read-sequence";
+        final String containerName = "eh-avro-wrong-consumer-group";
         int maxRecords = PARTITION_COUNT * RECORD_PER_PARTITION;
         AzureEventHubsStreamInputConfiguration inputConfiguration = createInputConfiguration(true);
         inputConfiguration.setDataset(createDataSet());
@@ -116,8 +136,9 @@ class AzureEventHubsAvroTest extends AzureEventHubsRWTestBase {
         inputConfiguration.setSequenceNum(-1L);
 
         final Mapper mapper = getComponentsHandler().createMapper(AzureEventHubsStreamInputMapper.class, inputConfiguration);
-        List<Record> records = getComponentsHandler().collectAsList(Record.class, mapper, maxRecords);
-        assertEquals(maxRecords, records.size());
+        assertThrows(IllegalStateException.class, () -> {
+            getComponentsHandler().collectAsList(Record.class, mapper, maxRecords);
+        });
     }
 
     @Test

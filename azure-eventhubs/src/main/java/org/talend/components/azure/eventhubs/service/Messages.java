@@ -25,8 +25,6 @@ public interface Messages {
 
     String errorWrongSequenceNumber(long seq, long latestSeq);
 
-    String errorNoAvailableReceiver();
-
     String errorMissingElement(String element);
 
     String invalidatedSASURL();
