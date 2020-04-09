@@ -40,8 +40,8 @@ import javax.json.spi.JsonProvider;
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.azure.eventhubs.runtime.adapter.ContentAdapterFactory;
 import org.talend.components.azure.eventhubs.runtime.adapter.EventDataContentAdapter;
-import org.talend.components.azure.eventhubs.service.Messages;
 import org.talend.components.azure.eventhubs.service.AzureEventhubsService;
+import org.talend.components.azure.eventhubs.service.Messages;
 import org.talend.components.azure.eventhubs.source.AzureEventHubsSource;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
@@ -307,9 +307,14 @@ public class AzureEventHubsUnboundedSource implements Serializable, AzureEventHu
         }
         Throwable exception = errorContext.getThrowable();
         if (exception != null) {
-            errorMessage = exception.getMessage();
-            log.error("Error occurred in partition processor for partition {}, {}",
-                    errorContext.getPartitionContext().getPartitionId(), exception.getMessage());
+            if (exception instanceof AmqpException) {
+                log.error("Error occurred in partition processor for partition {}, {}",
+                        errorContext.getPartitionContext().getPartitionId(), exception);
+                errorMessage = exception.getMessage();
+            } else {
+                log.warn("Error occurred in partition processor for partition {}, {}",
+                        errorContext.getPartitionContext().getPartitionId(), exception.getMessage());
+            }
         }
     }
 
