@@ -77,22 +77,40 @@ public class MongoDBProcessor implements Serializable {
         MongoDBDataStore datastore = dataset.getDatastore();
         client = service.createClient(datastore);
         MongoDatabase database = client.getDatabase(datastore.getDatabase());
-        collection = database.getCollection(dataset.getCollection());
 
-        // apply to database level? not collection level?
+        // apply to database level too, necessay?
         if (configuration.isSetWriteConcern()) {
             switch (configuration.getWriteConcern()) {
             case ACKNOWLEDGED:
-                database.withWriteConcern(WriteConcern.ACKNOWLEDGED);
+                database = database.withWriteConcern(WriteConcern.ACKNOWLEDGED);
                 break;
             case UNACKNOWLEDGED:
-                database.withWriteConcern(WriteConcern.UNACKNOWLEDGED);
+                database = database.withWriteConcern(WriteConcern.UNACKNOWLEDGED);
                 break;
             case JOURNALED:
-                database.withWriteConcern(WriteConcern.JOURNALED);
+                database = database.withWriteConcern(WriteConcern.JOURNALED);
                 break;
             case REPLICA_ACKNOWLEDGED:
-                database.withWriteConcern(WriteConcern.REPLICA_ACKNOWLEDGED);
+                database = database.withWriteConcern(WriteConcern.REPLICA_ACKNOWLEDGED);
+                break;
+            }
+        }
+
+        collection = database.getCollection(dataset.getCollection());
+
+        if (configuration.isSetWriteConcern()) {
+            switch (configuration.getWriteConcern()) {
+            case ACKNOWLEDGED:
+                collection = collection.withWriteConcern(WriteConcern.ACKNOWLEDGED);
+                break;
+            case UNACKNOWLEDGED:
+                collection = collection.withWriteConcern(WriteConcern.UNACKNOWLEDGED);
+                break;
+            case JOURNALED:
+                collection = collection.withWriteConcern(WriteConcern.JOURNALED);
+                break;
+            case REPLICA_ACKNOWLEDGED:
+                collection = collection.withWriteConcern(WriteConcern.REPLICA_ACKNOWLEDGED);
                 break;
             }
         }

@@ -538,7 +538,20 @@ public class MongoDBTestIT {
 
     @Test
     void testSink_UNACKNOWLEDGED() {
-        //TODO
+        MongoDBReadAndWriteDataSet dataset = getMongoDBReadAndWriteDataSet("test");
+
+        dataset.setMode(Mode.JSON);
+
+        MongoDBSinkConfiguration config = new MongoDBSinkConfiguration();
+        config.setDataset(dataset);
+        config.setSetWriteConcern(true);
+        config.setWriteConcern(WriteConcern.UNACKNOWLEDGED);
+
+        componentsHandler.setInputData(getTestData());
+        executeSinkTestJob(config);
+
+        List<Record> res = getRecords(dataset);
+        System.out.println(res);
     }
 
 }
