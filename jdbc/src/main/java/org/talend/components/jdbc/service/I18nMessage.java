@@ -76,7 +76,7 @@ public interface I18nMessage {
     String errorUnsupportedDatabase(String dbType);
 
     String errorUnsupportedType(String type, String field);
-    
+
     String errorUnsupportedBooleanType4Oracle(String field);
 
     //
@@ -95,4 +95,8 @@ public interface I18nMessage {
     String errorVacantAccountKey();
 
     String errorNoRecordReceived();
+
+    String errorPrivateKeyPasswordIncorrect();
+
+    String errorPrivateKeyIncorrect();
 }
