@@ -117,10 +117,11 @@ public class FTPService implements Serializable {
     public boolean pathIsFile(FTPDataSet dataset) {
         try (GenericFTPClient ftpClient = getClient(dataset.getDatastore())) {
             List<GenericFTPFile> files = ftpClient.listFiles(dataset.getPath());
+            String[] pathElements = dataset.getPath().split(PATH_SEPARATOR);
+            String pathLastElement = pathElements[pathElements.length - 1];
             if (files.size() == 1) {
-                String[] pathElements = dataset.getPath().split(PATH_SEPARATOR);
-                String pathLastElement = pathElements[pathElements.length - 1];
-                return !files.get(0).isDirectory() && files.get(0).getName().equals(pathLastElement);
+                return !files.get(0).isDirectory()
+                        && (files.get(0).getName().equals(pathLastElement) || files.get(0).getName().equals(dataset.getPath()));
             }
 
             return false;
