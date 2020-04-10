@@ -527,4 +527,18 @@ public class MongoDBTestIT {
         System.out.println(res);
     }
 
+    @Test
+    void testSourceNullProcess() {
+        MongoDBReadDataSet dataset = getMongoDBDataSet("my_collection_01");
+        // dataset.setMode(Mode.TEXT);
+        final List<Record> res = getRecords(dataset);
+
+        System.out.println(res);
+    }
+
+    @Test
+    void testSink_UNACKNOWLEDGED() {
+        //TODO
+    }
+
 }
